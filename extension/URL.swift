@@ -11,20 +11,29 @@ import Foundation
 public extension URL {
     
     /**
-     Adds query string parameters to the URL
+     Add, update, or remove a query string parameter from the URL
      
-     - returns: a new URL with the mutated query string
+     - parameter url:   the URL
+     - parameter key:   the key of the query string parameter
+     - parameter value: the value to replace the query string parameter, nil will remove item
      
-     let url = URL(string: "https://google.com")!
-     let param = ["q": "Swifter Swift"]
-     url.appendingQueryParameters(params) -> "https://google.com?q=Swifter%20Swift"
+     - returns: the URL with the mutated query string
      */
-    public func appendingQueryItems(_ parameters: [String: String]) -> URL {
-        var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true)!
-        var items = urlComponents.queryItems ?? []
-        items += parameters.map({ URLQueryItem(name: $0, value: $1) })
-        urlComponents.queryItems = items
-        return urlComponents.url!
+    func appendingQueryItem(_ name: String, value: Any?) -> URL {
+        guard var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            print("could not retrieve URLComponents")
+            return self
+        }
+        
+        urlComponents.queryItems = urlComponents.queryItems?
+            .filter { $0.name.lowercased() != name.lowercased() } ?? []
+        
+        // Skip if nil value
+        if let value = value {
+            urlComponents.queryItems?.append(URLQueryItem(name: name, value: "\(value)"))
+        }
+        
+        return urlComponents.url ?? self
     }
     
 }
