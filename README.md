@@ -8,6 +8,9 @@ Useful Swift extensions and classes
 - Appending a query item
 - Appending multiple query items
 
+1.2 AppDelegate
+- registerDefaultsFromSettingsBundle
+
 2. Helpers
 2.1 Networking
 2.1.1 App API client
