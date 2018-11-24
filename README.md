@@ -12,6 +12,7 @@ Useful Swift extensions and classes
 - registerDefaultsFromSettingsBundle
 
 2. Helpers
+
 2.1 Networking
 2.1.1 App API client
 - Specific network error enum
@@ -27,3 +28,8 @@ Useful Swift extensions and classes
 2.3 Video
 2.3.3 AV code reader
 - Reads QR codes (also able to set up for bar codes)
+
+3. Classes
+3.1 UIView
+3.1.1 ReusableXibView
+- Loads a view from a equally named XIB
