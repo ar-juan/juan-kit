@@ -26,8 +26,14 @@ Useful Swift extensions and classes
 - Calculate the distance between MKPlacemarks
 
 2.3 Video
-2.3.3 AV code reader
+2.3.1 AV code reader
 - Reads QR codes (also able to set up for bar codes)
+
+2.4 Logging
+2.4.1 LogMe
+- Removes clutter from NSLog
+- Adds file and line number
+- Adds logging levels (Debug, Info, Warn, Error)
 
 3. Classes
 3.1 UIView
