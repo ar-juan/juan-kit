@@ -13,6 +13,36 @@ struct AppGeocoder {
     /// Cache the results in UserDefaults?
     var cacheResults = false
     
+    /// Creates MKPlacemark for a location and caches the result in `UserDefaults`
+    /// - Parameter addressString: Een string met adres, bijv. "Straatweg 1, 1234AB, Rotterdam"
+    /// - Parameter completion: wat te doen zodra compleet
+    static func geocode(address addressString: String?, completion: @escaping (_ placemark: MKPlacemark?) -> Void) {
+        if
+            cacheResults,
+            let addressString = addressString,
+            let propertyList = UserDefaults.standard.object(forKey: addressString) as? Data,
+            let placemark = NSKeyedUnarchiver.unarchiveObject(with: propertyList) as? MKPlacemark
+        {
+            completion(placemark)
+        } else {
+            let glc = CLGeocoder()
+            let region: CLCircularRegion = CLCircularRegion(center: CLLocationCoordinate2D(latitude: 52.256680, longitude: 5.373074), radius: 180000, identifier: "Nederland")
+            if let toString = addressString {
+                glc.geocodeAddressString(toString, in: region, completionHandler: { (placeMarks: [CLPlacemark]?, error: Error?) in
+                    guard let location = placeMarks?.first else { return }
+                    let placemark = MKPlacemark(placemark: location)
+                    
+                    let encodedPlacemark = NSKeyedArchiver.archivedData(withRootObject: placemark)
+                    
+                    if self.cacheResults { UserDefaults.standard.set(encodedPlacemark, forKey: toString) }
+                    
+                    completion(placemark)
+                }) // ** geocodeAddressString
+            } // ** if let
+        } // ** else
+    }
+    
+    
     /// Creates MKPlacemark for a `from` and a `to` location and caches the result in `UserDefaults`
     /// - Parameter to: Een string met adres, bijv. "Straatweg 1, 1234AB, Rotterdam"
     /// - Parameter from: idem
