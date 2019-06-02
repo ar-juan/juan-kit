@@ -1,6 +1,6 @@
 //
 //  LocationManager.swift
-//  SiteDishBezorgApp
+//  
 //
 //  Created by Arjan van der Laan on 09-03-19.
 //  Copyright © 2019 Arjan van der Laan. All rights reserved.
@@ -46,12 +46,12 @@ enum LocationAccuracy {
         }
     }
     
-//    public let kCLLocationAccuracyBestForNavigation: CLLocationAccuracy
-//    public let kCLLocationAccuracyBest: CLLocationAccuracy
-//    public let kCLLocationAccuracyNearestTenMeters: CLLocationAccuracy
-//    public let kCLLocationAccuracyHundredMeters: CLLocationAccuracy
-//    public let kCLLocationAccuracyKilometer: CLLocationAccuracy
-//    public let kCLLocationAccuracyThreeKilometers: CLLocationAccuracy
+    //    public let kCLLocationAccuracyBestForNavigation: CLLocationAccuracy
+    //    public let kCLLocationAccuracyBest: CLLocationAccuracy
+    //    public let kCLLocationAccuracyNearestTenMeters: CLLocationAccuracy
+    //    public let kCLLocationAccuracyHundredMeters: CLLocationAccuracy
+    //    public let kCLLocationAccuracyKilometer: CLLocationAccuracy
+    //    public let kCLLocationAccuracyThreeKilometers: CLLocationAccuracy
 }
 
 struct LocationCoordinate {
@@ -63,6 +63,7 @@ struct LocationCoordinate {
 protocol LocationManagerDelegate {
     func locationManager(_ manager: LocationManager, didChangeAuthorization status: LocationAuthorizationStatus);
     func locationManager(_ manager: LocationManager, didUpdateLocations locations: [LocationCoordinate])
+    func locationManager(_ manager: LocationManager, didEnterRegionWithIdentifier regionIdentifier: String)
 }
 
 class LocationManager: NSObject, CLLocationManagerDelegate {
@@ -78,13 +79,13 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     var currentAuthorizationStatus: LocationAuthorizationStatus {
         return LocationAuthorizationStatus.converted(from: CLLocationManager.authorizationStatus())
     }
-
+    
     private let locationManager = CLLocationManager()
     
-//    func startUpdating(with desiredAccuracy: LocationAccuracy) {
-//        locationManager.desiredAccuracy = desiredAccuracy.converted()
-//        locationManager.startUpdatingLocation()
-//    }
+    //    func startUpdating(with desiredAccuracy: LocationAccuracy) {
+    //        locationManager.desiredAccuracy = desiredAccuracy.converted()
+    //        locationManager.startUpdatingLocation()
+    //    }
     
     /**
      - returns: whether or not location services could be requested
@@ -128,5 +129,36 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     }
     
     func requestLocation() { locationManager.requestLocation() }
+    func startUpdatingLocation() { locationManager.startUpdatingLocation() }
+    func stopUpdatingLocation() { locationManager.stopUpdatingLocation() }
+    
+    
+    // MARK: Region monitoring
+    func monitorRegionAtLocation(center: CLLocationCoordinate2D, identifier: String ) {
+        // Make sure the app is authorized.
+        if CLLocationManager.authorizationStatus() == .authorizedAlways {
+            // Make sure region monitoring is supported.
+            if CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
+                // Register the region.
+                let maxDistance = locationManager.maximumRegionMonitoringDistance
+                let region = CLCircularRegion(center: center,
+                                              radius: maxDistance, identifier: identifier)
+                region.notifyOnEntry = true
+                region.notifyOnExit = false
+                
+                locationManager.startMonitoring(for: region)
+            }
+        }
+    }
+    
+    func cancelAllRegionMonitoring() {
+        for region in locationManager.monitoredRegions {
+            locationManager.stopMonitoring(for: region)
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        delegate?.locationManager(self, didEnterRegionWithIdentifier: region.identifier)
+    }
 }
 

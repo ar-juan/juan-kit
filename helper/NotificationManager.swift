@@ -15,26 +15,15 @@ import UserNotifications
  - registering the app for receiving notifications, both UI based and remote push notifications
  - showing a notification to the user
  In the appDelegate, you should call `AppNotificationManager.sharedInstance.prepareForApplication()`
- and 
  */
 class AppNotificationManager: NotificationManagerDelegate {
     static let sharedInstance = AppNotificationManager()
-    let manager = NotificationManager.sharedInstance
-    var context: NSManagedObjectContext?
- 
+    let manager = NotificationManager.sharedInstance()
+    
     private init() {
         manager.delegate = self
- 
-        // If we are called BEFORE context has been set
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(Globals.DatabaseAvailabilityNotificationName), object: nil, queue: nil, using: { (notification) -> Void in
-            if let userInfo = notification.userInfo as? [String: NSManagedObjectContext], /* where */ userInfo[Globals.DatabaseAvailabilityContext] != nil {
-                self.context = userInfo[Globals.DatabaseAvailabilityContext]
-            } else {
-                logthis("userInfo or context received by notification is nil. Should never happen.")
-            }
-        })
     }
- 
+    
     // MARK: Preparation
     func prepareForApplication(application:UIApplication, shouldRegisterForRemoteNotifications: Bool, shouldRegisterForUserNotifications: Bool) {
         if shouldRegisterForRemoteNotifications {
@@ -42,35 +31,35 @@ class AppNotificationManager: NotificationManagerDelegate {
         }
         manager.prepareForNotificationsOfApplication(application, shouldRegisterForRemoteNotifications: shouldRegisterForRemoteNotifications, shouldRegisterForUserNotifications: shouldRegisterForUserNotifications)
     }
- 
+    
     func prepared(token: String) { // may be called multiple times
         if manager.shouldRegisterForRemoteNotifications &&
             manager.shouldRegisterForUserNotifications &&
             NotificationManager.properties.registeredForUserNotifications &&
             NotificationManager.properties.registeredForRemoteSilentTypeNotifications {
-            GlobalUserDefaults.NotificationDeviceToken = token
+            Storage.pushIdentifier = token
         } else if manager.shouldRegisterForUserNotifications &&
             NotificationManager.properties.registeredForUserNotifications {
-            GlobalUserDefaults.NotificationDeviceToken = token
+            Storage.pushIdentifier = token
         }
     }
-    func handleRemoteNotificationWithUserInfo(_ userInfo: [AnyHashable: Any], whenDone completion: @escaping ((UIBackgroundFetchResult)->Void)) {
+    
+    func handleRemoteNotificationWithUserInfo(_ userInfo: [AnyHashable : Any], whenDone completion: @escaping ((UIBackgroundFetchResult) -> Void)) {
         let result: UIBackgroundFetchResult = .noData
         completion(result)
     }
-    func handleLocalNotification(_ notification: UILocalNotification) {
-        if let _ = notification.userInfo, let body = notification.alertBody
-        {
-            let alert = UIAlertController(title: notification.alertTitle ?? "new message", message: body, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {
-                (action: UIAlertAction) in
-                // Do something
-            }))
-            (UIApplication.shared.delegate as! AppDelegate).window?.rootViewController?.present(alert, animated: false, completion: nil)
-        }
+    
+    func handleLocalNotification(_ notification: UNNotification) {
+        let alert = UIAlertController(title: notification.request.content.title, message: notification.request.content.body, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {
+            (action: UIAlertAction) in
+            // Do something
+        }))
+        (UIApplication.shared.delegate as! AppDelegate).window?.rootViewController?.present(alert, animated: false, completion: nil)
     }
 }
 */
+
 
 protocol NotificationManagerDelegate {
     /**
